@@ -24,10 +24,14 @@ cd swimsync
 # Install Node.js dependencies
 npm install
 
-# Install Python dependencies
-pip install -r requirements.txt
-# Or using uv (recommended):
+# Install Python dependencies using uv (recommended):
 uv sync
+
+# Or using pip with pyproject.toml:
+pip install -e .
+
+# Or install manually:
+pip install fastapi uvicorn sqlalchemy psycopg2-binary httpx python-dotenv python-multipart itsdangerous openai
 ```
 
 ### 3. Set Up PostgreSQL

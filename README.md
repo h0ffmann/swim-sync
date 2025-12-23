@@ -122,7 +122,7 @@ Required GitHub Secrets:
 - `GET /api/login` - Initiate Google OAuth login
 - `GET /api/auth/callback` - OAuth callback handler
 - `GET /api/auth/user` - Get current user info
-- `POST /api/logout` - End session
+- `GET /api/logout` - End session
 
 ### Activities
 - `GET /api/activities` - List user activities
@@ -131,18 +131,22 @@ Required GitHub Secrets:
 - `DELETE /api/activities/:id` - Delete activity
 - `POST /api/import/csv` - Import from Garmin CSV
 
-### Analytics
-- `GET /api/analytics/summary` - Training summary stats
-- `GET /api/analytics/trends` - Training trends data
+### Personal Records
+- `GET /api/personal-records` - List personal records
 
 ### Goals
 - `GET /api/goals` - List user goals
 - `POST /api/goals` - Create goal
-- `PATCH /api/goals/:id` - Update goal
 
-### AI Coach
-- `POST /api/chat/send` - Send message to AI coach
-- `GET /api/chat/history` - Get chat history
+### AI Coach (Conversations)
+- `GET /api/conversations` - List conversations
+- `POST /api/conversations` - Create new conversation
+- `GET /api/conversations/:id` - Get conversation details
+- `DELETE /api/conversations/:id` - Delete conversation
+- `POST /api/conversations/:id/messages` - Send message to AI coach
+
+### System
+- `GET /api/health` - Health check endpoint
 
 ## License
 

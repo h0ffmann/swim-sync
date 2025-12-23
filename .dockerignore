@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build outputs (we build in Docker)
+dist/
+
+# Development files
+.git/
+.gitignore
+*.md
+.env
+.env.*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Replit specific
+.replit
+replit.nix
+replit.md
+.upm/
+.cache/
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+tests/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Attached assets (use only what's needed)
+attached_assets/
+
+# Lock files (we use package-lock.json)
+uv.lock
