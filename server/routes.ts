@@ -135,7 +135,7 @@ export async function registerRoutes(
       on: {
         error: (err, req, res) => {
           console.error("[proxy] Error:", err.message);
-          if (res && !res.headersSent && "writeHead" in res) {
+          if (res && "writeHead" in res && !(res as any).headersSent) {
             (res as any).writeHead(502, { "Content-Type": "application/json" });
             (res as any).end(JSON.stringify({ error: "Python backend unavailable" }));
           }
