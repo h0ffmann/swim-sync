@@ -1,0 +1,192 @@
+# Improved Project Design Prompt: Train Notes (Strava Clone for Swimming)
+
+## Project Overview
+Build a comprehensive swimming training application inspired by Strava, with advanced analytics, AI-powered insights, and unique features for competitive swimmers and open water enthusiasts.
+
+**Tech Stack:**
+- **Frontend:** Flutter (cross-platform: iOS, Android, Web)
+- **Backend:** Scala (with Akka HTTP or Play Framework)
+- **Research Required:** Analyze Strava's publicly available tech stack documentation to inform decisions on:
+  - Database architecture (likely PostgreSQL for relational data + TimescaleDB/InfluxDB for time-series activity data)
+  - Caching layer (Redis for session management and real-time leaderboards)
+  - Object storage (S3-compatible for GPX files, activity exports)
+  - Message queue system (Kafka/RabbitMQ for async processing)
+  - Geospatial database (PostGIS for map-based features)
+
+---
+
+## Version 0: Core Features (MVP)
+
+### 1. **Activity Data Management**
+- **Primary Focus:** Swimming activities only
+- **Data Import Options:**
+  - CSV import supporting Garmin Connect export format (use provided sample as reference schema)
+  - Parse key fields: date, time, duration, distance, pace, strokes, pool length, stroke type, heart rate
+  - Validate and normalize data on import
+- **Future Consideration:** Direct Garmin API integration (research OAuth flow and rate limits)
+
+### 2. **Activity Dashboard**
+- Display chronological feed of swimming activities
+- Summary cards showing: date, distance, duration, average pace, stroke type
+- Filter/sort by: date range, pool vs open water, stroke type
+- Search functionality
+
+### 3. **Analytics & Visualizations**
+Must include compelling visual analytics:
+- **Personal Records (PR) Tracking:**
+  - Automatic PR detection for standard distances: 50m, 100m, 200m, 400m, 800m, 1km, 1.5km, 2km, 5km, 10km
+  - Visual timeline showing PR progression over time
+  - Comparison view: current pace vs. personal best
+  
+- **Charts & Graphs:**
+  - Weekly/monthly distance volume (bar charts)
+  - Pace trends over time (line graphs with moving averages)
+  - Training frequency heatmap (calendar view)
+  - Stroke distribution pie chart
+  - Heart rate zones (if available in data)
+
+- **Statistics Panel:**
+  - Total distance (lifetime, yearly, monthly)
+  - Total time in water
+  - Average pace by distance/stroke type
+  - Consistency metrics (days per week, longest streak)
+
+### 4. **Technical Requirements for v0**
+- Responsive UI design following Material Design 3 principles
+- Offline-first architecture (local SQLite cache in Flutter)
+- RESTful API design with proper versioning
+- JWT-based authentication system
+- Data validation and error handling
+- Unit tests for core business logic
+- API documentation (Swagger/OpenAPI)
+
+---
+
+## Version 1: Advanced Features & Differentiation
+
+### 1. **Global Open Water Swimming Map**
+- **Interactive World Map:**
+  - Plot all open water swimming activities globally
+  - Cluster markers for popular swimming spots
+  - Heatmap overlay showing swimming activity density
+  - Filter by: water temperature, distance, date range
+  
+- **Location Details:**
+  - User-contributed spot ratings and reviews
+  - Safety information (currents, hazards)
+  - Water quality data (integrate public APIs if available)
+  - Photo galleries from community
+
+### 2. **Global Leaderboards & Rankings**
+- **Ranking Categories:**
+  - Overall distance (monthly, yearly, all-time)
+  - Fastest times by distance (50m, 100m, 1km, etc.)
+  - Most consistent swimmers (streak-based)
+  - Open water adventurers (unique locations visited)
+  
+- **Leaderboard Features:**
+  - Country/region filters
+  - Age group categories
+  - Gender categories
+  - Stroke-specific rankings
+  - Real-time rank updates
+  - Achievement badges and milestones
+
+### 3. **AI-Powered Goal Prediction**
+- **Marathon Swim Prediction Model:**
+  - Input: Training history, pace trends, volume, consistency
+  - Output: Probability (%) of successfully completing marathon swim (10km, 25km distances)
+  - Confidence intervals and factors affecting prediction
+  - Required training adjustments to improve success probability
+  
+- **Machine Learning Approach:**
+  - Train regression model on historical swimmer data (if available, or use simulated data initially)
+  - Features: average weekly distance, pace improvement rate, longest continuous swim, training consistency
+  - Consider: XGBoost, Random Forest, or Neural Network (choose based on data availability)
+  - Periodically retrain as user completes more activities
+
+### 4. **AI Training Coach**
+- **Personalized Recommendations:**
+  - Identify training gaps (e.g., "You haven't done interval training in 3 weeks")
+  - Suggest workout types based on goals and current fitness
+  - Recovery recommendations based on training load
+  - Injury prevention tips (overtraining detection)
+  
+- **Analysis Types:**
+  - Pace consistency feedback
+  - Stroke efficiency tips (if stroke count data available)
+  - Volume recommendations (progressive overload principles)
+  - Tapering suggestions for race preparation
+
+### 5. **Enhanced Training Log & Notes**
+- **Rich Note-Taking:**
+  - Markdown support for formatting
+  - Tag system for categorization (#technique #race #recovery)
+  - Mood/energy level tracking (1-10 scale)
+  - Weather conditions
+  - Equipment used (suit, goggles, fins)
+  - Training partners
+  
+- **Obsidian Integration:**
+  - Export notes in Obsidian-compatible markdown format
+  - Maintain internal links and tags
+  - Frontmatter YAML with structured metadata (date, distance, duration, etc.)
+  - Batch export functionality
+  - Automatic sync option (webhook or API if Obsidian supports)
+
+### 6. **Additional v1 Features**
+- **Social Features:**
+  - Follow other swimmers
+  - Comment and kudos on activities
+  - Training groups/clubs
+  - Challenge system (monthly distance goals)
+
+- **Training Plans:**
+  - Pre-built plans (couch-to-1km, marathon preparation)
+  - Custom plan builder
+  - Progress tracking against plan
+
+- **Wearable Integration:**
+  - Expand beyond Garmin (Apple Watch, Polar, Suunto)
+  - Real-time activity sync
+
+---
+
+## Data Model Considerations
+
+### Core Entities:
+1. **User:** id, email, name, profile_photo, country, date_joined, subscription_tier
+2. **Activity:** id, user_id, type, date, duration, distance, pace, strokes, pool_length, heart_rate_avg, calories, gpx_file
+3. **PersonalRecord:** id, user_id, distance, best_time, best_pace, activity_id, achieved_date
+4. **Note:** id, activity_id, content, tags, mood, weather, created_at, updated_at
+5. **Location:** id, activity_id, latitude, longitude, name, water_type, temperature
+6. **Goal:** id, user_id, goal_type, target_distance, target_date, completion_probability
+
+---
+
+## Non-Functional Requirements
+- **Performance:** API response time < 200ms for 95th percentile
+- **Scalability:** Support 10,000+ concurrent users in v1
+- **Security:** Encryption at rest and in transit, GDPR compliance
+- **Availability:** 99.9% uptime SLA
+- **Mobile:** Smooth 60fps UI, app size < 50MB
+- **Accessibility:** WCAG 2.1 AA compliance
+
+---
+
+## Development Phases
+1. **Research Phase (1 week):** Strava tech stack analysis, competitor analysis, finalize architecture
+2. **v0 Development (8-10 weeks):** Core features, CSV import, analytics
+3. **v0 Beta Testing (2 weeks):** User feedback, bug fixes
+4. **v1 Development (12-16 weeks):** AI features, global map, advanced features
+5. **v1 Launch:** Phased rollout with monitoring
+
+---
+
+## Questions to Address Before Starting:
+- What is the target user base size for v0?
+- Is this a free app, freemium, or subscription model?
+- What is the budget for cloud infrastructure?
+- Are there any specific compliance requirements (health data regulations)?
+- Will there be iOS/Android release simultaneously, or phased?
+- What level of AI sophistication is expected (rule-based vs. ML models)?
