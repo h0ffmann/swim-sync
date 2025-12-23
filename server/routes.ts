@@ -6,6 +6,7 @@ import { z } from "zod";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
+import { registerCSVRoutes } from "./replit_integrations/csv";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -18,6 +19,9 @@ export async function registerRoutes(
   // Setup AI Integrations
   registerChatRoutes(app);
   registerImageRoutes(app);
+  
+  // Setup CSV Import
+  registerCSVRoutes(app);
 
   // === Activity Routes ===
   app.get(api.activities.list.path, async (req, res) => {

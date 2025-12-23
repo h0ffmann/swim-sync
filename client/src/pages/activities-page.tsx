@@ -1,6 +1,7 @@
 import { useActivities } from "@/hooks/use-activities";
 import { ActivityCard } from "@/components/activity-card";
 import { AddActivityDialog } from "@/components/add-activity-dialog";
+import { ImportCSVDialog } from "@/components/import-csv-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -22,7 +23,10 @@ export default function ActivitiesPage() {
           <h1 className="text-3xl font-display font-bold text-foreground">Activities</h1>
           <p className="text-muted-foreground">Your complete swimming history.</p>
         </div>
-        <AddActivityDialog />
+        <div className="flex gap-2">
+          <ImportCSVDialog />
+          <AddActivityDialog />
+        </div>
       </div>
 
       <div className="relative">
