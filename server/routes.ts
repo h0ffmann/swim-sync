@@ -6,7 +6,6 @@ import path from "path";
 
 let pythonProcess: ReturnType<typeof spawn> | null = null;
 let pythonReady = false;
-const isProduction = process.env.NODE_ENV === "production";
 
 function findPythonCommand(): string {
   const commands = ["python3", "python"];
@@ -25,7 +24,7 @@ function findPythonCommand(): string {
 }
 
 function startPythonBackend() {
-  if (pythonProcess || isProduction) return;
+  if (pythonProcess) return;
 
   const pythonCmd = findPythonCommand();
   const workDir = process.cwd();
@@ -76,7 +75,7 @@ function startPythonBackend() {
     pythonProcess = null;
     pythonReady = false;
     
-    if (code !== 0 && code !== null && !isProduction) {
+    if (code !== 0 && code !== null) {
       console.error("[python] Backend crashed, attempting restart in 3s...");
       setTimeout(() => {
         startPythonBackend();
@@ -113,17 +112,15 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Only spawn Python in development
-  if (!isProduction) {
-    startPythonBackend();
-    const ready = await waitForPython();
-    if (ready) {
-      console.log("[express] Python backend is ready");
-    } else {
-      console.warn("[express] Python backend not ready in time, will retry on requests");
-    }
+  // Always start Python backend (both dev and production)
+  startPythonBackend();
+  
+  // Wait for Python to be ready
+  const ready = await waitForPython();
+  if (ready) {
+    console.log("[express] Python backend is ready");
   } else {
-    console.log("[express] Production mode - assuming Python backend is running separately");
+    console.warn("[express] Python backend not ready in time, will retry on requests");
   }
 
   // Proxy all /api requests to Python backend running on port 8000
