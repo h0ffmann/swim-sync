@@ -131,9 +131,12 @@ async def get_login_url(request: Request) -> str:
     for s in expired_states:
         del oauth_state_store[s]
     
+    redirect_uri = get_redirect_uri(request)
+    print(f"[auth] Login: redirect_uri={redirect_uri}, host={request.headers.get('host')}, x-forwarded-proto={request.headers.get('x-forwarded-proto')}")
+    
     params = {
         "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": get_redirect_uri(request),
+        "redirect_uri": redirect_uri,
         "response_type": "code",
         "scope": "openid email profile",
         "state": state,
