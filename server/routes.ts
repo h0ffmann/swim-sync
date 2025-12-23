@@ -6,6 +6,8 @@ import path from "path";
 
 let pythonProcess: ReturnType<typeof spawn> | null = null;
 let pythonReady = false;
+let lastRestartAttempt = 0;
+const RESTART_DELAY = 5000; // 5 second delay between restart attempts
 
 function findPythonCommand(): string {
   const commands = ["python3", "python"];
@@ -75,11 +77,14 @@ function startPythonBackend() {
     pythonProcess = null;
     pythonReady = false;
     
-    if (code !== 0 && code !== null) {
-      console.error("[python] Backend crashed, attempting restart in 3s...");
+    // Attempt restart with delay to let port be released
+    const now = Date.now();
+    if (code !== 0 && code !== null && now - lastRestartAttempt >= RESTART_DELAY) {
+      lastRestartAttempt = now;
+      console.error(`[python] Backend crashed, attempting restart in ${RESTART_DELAY}ms...`);
       setTimeout(() => {
         startPythonBackend();
-      }, 3000);
+      }, RESTART_DELAY);
     }
   });
 }
