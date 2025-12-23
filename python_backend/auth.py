@@ -42,11 +42,14 @@ def generate_pkce_pair():
 
 def get_redirect_uri(request: Request) -> str:
     """Build the OAuth callback URL based on the request."""
-    # Use the host from the request to handle both dev and production
-    host = request.headers.get("host", "localhost:5000")
+    # Check for x-forwarded-host first (set by Express proxy), then fall back to host
+    x_forwarded_host = request.headers.get("x-forwarded-host")
+    host = x_forwarded_host or request.headers.get("host", "localhost:5000")
     # Check for forwarded proto (from proxy) or use request scheme
     scheme = request.headers.get("x-forwarded-proto") or request.url.scheme or "https"
-    return f"{scheme}://{host}/api/auth/callback"
+    redirect_uri = f"{scheme}://{host}/api/auth/callback"
+    print(f"[auth] get_redirect_uri: x-forwarded-host={x_forwarded_host}, host={request.headers.get('host')}, final={redirect_uri}")
+    return redirect_uri
 
 
 def get_current_user_id(request: Request) -> str:
