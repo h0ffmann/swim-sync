@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,25 +6,41 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useActivities } from "@/hooks/use-activities";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, FileText, X } from "lucide-react";
 
 export function ImportCSVDialog() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { refetch } = useActivities();
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
 
     setLoading(true);
     try {
-      const fileContent = await file.text();
+      const fileContent = await selectedFile.text();
       const response = await fetch("/api/import/csv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,6 +65,7 @@ export function ImportCSVDialog() {
       });
 
       refetch();
+      setSelectedFile(null);
       setOpen(false);
     } catch (error) {
       toast({
@@ -61,8 +78,18 @@ export function ImportCSVDialog() {
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" data-testid="button-import-csv">
           <Upload className="w-4 h-4 mr-2" />
@@ -77,30 +104,79 @@ export function ImportCSVDialog() {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="relative border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors">
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileSelect}
-              disabled={loading}
-              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
-              id="csv-upload"
-              data-testid="input-csv-upload"
-            />
-            <label htmlFor="csv-upload" className="cursor-pointer block">
-              {loading ? (
-                <Loader2 className="w-8 h-8 mx-auto mb-2 text-muted-foreground animate-spin" />
-              ) : (
+          {!selectedFile ? (
+            <div className="relative border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileSelect}
+                disabled={loading}
+                className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
+                id="csv-upload"
+                data-testid="input-csv-upload"
+              />
+              <label htmlFor="csv-upload" className="cursor-pointer block">
                 <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              )}
-              <p className="text-sm font-medium">{loading ? "Importing..." : "Click to upload CSV file"}</p>
-              <p className="text-xs text-muted-foreground mt-1">{loading ? "Please wait" : "or drag and drop"}</p>
-            </label>
-          </div>
+                <p className="text-sm font-medium">Click to select CSV file</p>
+                <p className="text-xs text-muted-foreground mt-1">or drag and drop</p>
+              </label>
+            </div>
+          ) : (
+            <div className="border border-border rounded-lg p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <FileText className="w-8 h-8 text-primary flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate" data-testid="text-selected-filename">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {(selectedFile.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRemoveFile}
+                disabled={loading}
+                data-testid="button-remove-file"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             Export activities from Garmin Connect as CSV and upload here. All activities will be automatically parsed and added to your profile.
           </p>
         </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+            disabled={loading}
+            data-testid="button-cancel-import"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpload}
+            disabled={!selectedFile || loading}
+            data-testid="button-upload-csv"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
