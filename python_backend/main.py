@@ -95,12 +95,15 @@ async def auth_callback(
         # Create session cookie
         session_cookie = create_session_cookie(user.id)
         
+        # Determine if we're on HTTPS (production)
+        is_secure = request.headers.get("x-forwarded-proto", "http") == "https"
+        
         response = RedirectResponse(url="/dashboard")
         response.set_cookie(
             key="session",
             value=session_cookie,
             httponly=True,
-            secure=True,
+            secure=is_secure,
             samesite="lax",
             max_age=7 * 24 * 60 * 60,  # 1 week
         )

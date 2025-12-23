@@ -44,7 +44,8 @@ def get_redirect_uri(request: Request) -> str:
     """Build the OAuth callback URL based on the request."""
     # Use the host from the request to handle both dev and production
     host = request.headers.get("host", "localhost:5000")
-    scheme = request.headers.get("x-forwarded-proto", "https")
+    # Check for forwarded proto (from proxy) or use request scheme
+    scheme = request.headers.get("x-forwarded-proto") or request.url.scheme or "https"
     return f"{scheme}://{host}/api/auth/callback"
 
 
