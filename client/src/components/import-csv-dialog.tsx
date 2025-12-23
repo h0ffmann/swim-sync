@@ -49,12 +49,31 @@ export function ImportCSVDialog() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        toast({
-          title: "Import Failed",
-          description: error.message || "Failed to import CSV",
-          variant: "destructive",
-        });
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const error = await response.json();
+          toast({
+            title: "Import Failed",
+            description: error.detail || error.message || "Failed to import CSV",
+            variant: "destructive",
+          });
+        } else {
+          // Handle non-JSON error responses (like HTML error pages)
+          if (response.status === 401) {
+            toast({
+              title: "Not Logged In",
+              description: "Please log in to import activities",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Import Failed",
+              description: `Server error (${response.status})`,
+              variant: "destructive",
+            });
+          }
+        }
         return;
       }
 
