@@ -42,13 +42,35 @@ def generate_pkce_pair():
 
 def get_redirect_uri(request: Request) -> str:
     """Build the OAuth callback URL based on the request."""
-    # Check for x-forwarded-host first (set by Express proxy), then fall back to host
-    x_forwarded_host = request.headers.get("x-forwarded-host")
-    host = x_forwarded_host or request.headers.get("host", "localhost:5000")
-    # Check for forwarded proto (from proxy) or use request scheme
-    scheme = request.headers.get("x-forwarded-proto") or request.url.scheme or "https"
+    # In production (REPLIT_DEPLOYMENT set), use the Replit domain
+    # In development, use REPLIT_DOMAINS or fall back to localhost
+    is_production = os.environ.get("REPLIT_DEPLOYMENT") is not None
+    replit_domain = os.environ.get("REPLIT_DOMAINS", "")
+    
+    if is_production:
+        # Production: Use HTTPS with the Replit app domain
+        # The production domain is typically different from dev domain
+        # Use x-forwarded-host from the actual request if available
+        x_forwarded_host = request.headers.get("x-forwarded-host")
+        if x_forwarded_host:
+            host = x_forwarded_host
+        elif replit_domain:
+            host = replit_domain
+        else:
+            # Fall back to the request host
+            host = request.headers.get("host", "localhost:5000")
+        scheme = "https"
+    elif replit_domain:
+        # Development on Replit: use the dev domain with HTTPS
+        host = replit_domain
+        scheme = "https"
+    else:
+        # Local development: use localhost
+        host = request.headers.get("host", "localhost:5000")
+        scheme = request.url.scheme or "http"
+    
     redirect_uri = f"{scheme}://{host}/api/auth/callback"
-    print(f"[auth] get_redirect_uri: x-forwarded-host={x_forwarded_host}, host={request.headers.get('host')}, final={redirect_uri}")
+    print(f"[auth] get_redirect_uri: is_prod={is_production}, replit_domain={replit_domain}, final={redirect_uri}")
     return redirect_uri
 
 
