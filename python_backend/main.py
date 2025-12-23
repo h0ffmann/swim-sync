@@ -20,7 +20,8 @@ from .schemas import (
 )
 from .auth import (
     get_current_user_id, get_optional_user_id, create_session_cookie,
-    upsert_user, get_oidc_config, REPL_ID, serializer
+    upsert_user, get_login_url, exchange_code_for_tokens, get_user_info,
+    GOOGLE_CLIENT_ID
 )
 from .csv_parser import parse_garmin_csv
 
@@ -54,79 +55,61 @@ openai_client = OpenAI(
 # === Auth Routes ===
 @app.get("/api/login")
 async def login(request: Request):
-    """Redirect to Replit OIDC login."""
-    config = await get_oidc_config()
-    auth_endpoint = config.get("authorization_endpoint")
+    """Redirect to Google OAuth login."""
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=500, 
+            detail="Google OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."
+        )
     
-    redirect_uri = f"https://{request.headers.get('host')}/api/callback"
-    
-    auth_url = (
-        f"{auth_endpoint}?"
-        f"client_id={REPL_ID}&"
-        f"redirect_uri={redirect_uri}&"
-        f"response_type=code&"
-        f"scope=openid email profile offline_access&"
-        f"prompt=login consent"
-    )
-    
+    auth_url = await get_login_url(request)
     return RedirectResponse(url=auth_url)
 
 
-@app.get("/api/callback")
-async def callback(request: Request, code: str, db: Session = Depends(get_db)):
-    """Handle OIDC callback."""
-    config = await get_oidc_config()
-    token_endpoint = config.get("token_endpoint")
-    userinfo_endpoint = config.get("userinfo_endpoint")
+@app.get("/api/auth/callback")
+async def auth_callback(
+    request: Request, 
+    code: str = None, 
+    state: str = None,
+    error: str = None,
+    db: Session = Depends(get_db)
+):
+    """Handle Google OAuth callback."""
+    if error:
+        return RedirectResponse(url=f"/?error={error}")
     
-    redirect_uri = f"https://{request.headers.get('host')}/api/callback"
+    if not code or not state:
+        return RedirectResponse(url="/?error=missing_params")
     
-    # Exchange code for tokens
-    async with httpx.AsyncClient() as client:
-        token_response = await client.post(
-            token_endpoint,
-            data={
-                "client_id": REPL_ID,
-                "code": code,
-                "redirect_uri": redirect_uri,
-                "grant_type": "authorization_code",
-            },
-        )
-        
-        if token_response.status_code != 200:
-            return RedirectResponse(url="/api/login")
-        
-        tokens = token_response.json()
+    try:
+        # Exchange code for tokens
+        tokens = await exchange_code_for_tokens(code, state, request)
         access_token = tokens.get("access_token")
         
-        # Get user info
-        userinfo_response = await client.get(
-            userinfo_endpoint,
-            headers={"Authorization": f"Bearer {access_token}"},
+        # Get user info from Google
+        user_info = await get_user_info(access_token)
+        
+        # Upsert user in database
+        user = await upsert_user(db, user_info)
+        
+        # Create session cookie
+        session_cookie = create_session_cookie(user.id)
+        
+        response = RedirectResponse(url="/dashboard")
+        response.set_cookie(
+            key="session",
+            value=session_cookie,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=7 * 24 * 60 * 60,  # 1 week
         )
         
-        if userinfo_response.status_code != 200:
-            return RedirectResponse(url="/api/login")
-        
-        user_info = userinfo_response.json()
-    
-    # Upsert user in database
-    user = await upsert_user(db, user_info)
-    
-    # Create session cookie
-    session_cookie = create_session_cookie(user.id)
-    
-    response = RedirectResponse(url="/dashboard")
-    response.set_cookie(
-        key="session",
-        value=session_cookie,
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=7 * 24 * 60 * 60,  # 1 week
-    )
-    
-    return response
+        return response
+    except HTTPException as e:
+        return RedirectResponse(url=f"/?error={e.detail}")
+    except Exception as e:
+        return RedirectResponse(url=f"/?error=auth_failed")
 
 
 @app.get("/api/logout")
