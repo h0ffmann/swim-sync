@@ -139,19 +139,19 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Check if Python is already running on port 8000
-  const portInUse = await isPortInUse(8000);
+  // In production (REPLIT_DEPLOYMENT set), the run command handles spawning Python
+  // In development, Node.js spawns Python
+  const isProduction = process.env.REPLIT_DEPLOYMENT !== undefined;
   
-  if (!portInUse) {
-    // Only spawn Python if nothing is already listening on port 8000
-    console.log("[python] Port 8000 is free, starting Python backend...");
+  if (!isProduction) {
+    // Development: spawn Python from Node.js
     startPythonBackend();
   } else {
-    console.log("[python] Port 8000 is already in use, assuming Python is running elsewhere");
-    pythonReady = true; // Assume it's ready if something is already listening
+    // Production: Python is started by the run command, just wait for it
+    console.log("[python] Production mode - assuming Python is started by run command");
   }
   
-  // Wait for Python to be ready
+  // Wait for Python to be ready (both dev and production)
   const ready = await waitForPython();
   if (ready) {
     console.log("[express] Python backend is ready");
