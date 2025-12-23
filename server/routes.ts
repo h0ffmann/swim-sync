@@ -19,6 +19,7 @@ function startPythonBackend() {
   pythonProcess.stdout?.on("data", (data) => {
     const lines = data.toString().trim().split("\n");
     lines.forEach((line: string) => {
+      console.log("[python]", line);
       if (line.includes("Application startup complete")) {
         console.log("[python] Backend ready");
       }
@@ -26,12 +27,25 @@ function startPythonBackend() {
   });
 
   pythonProcess.stderr?.on("data", (data) => {
-    console.error("[python]", data.toString().trim());
+    const msg = data.toString().trim();
+    console.error("[python]", msg);
   });
 
-  pythonProcess.on("exit", (code) => {
-    console.log(`[python] Process exited with code ${code}`);
+  pythonProcess.on("error", (err) => {
+    console.error("[python] Failed to start:", err.message);
     pythonProcess = null;
+  });
+
+  pythonProcess.on("exit", (code, signal) => {
+    console.log(`[python] Process exited with code ${code}, signal ${signal}`);
+    pythonProcess = null;
+    
+    if (code !== 0 && code !== null) {
+      console.error("[python] Backend crashed, attempting restart in 3s...");
+      setTimeout(() => {
+        startPythonBackend();
+      }, 3000);
+    }
   });
 }
 
