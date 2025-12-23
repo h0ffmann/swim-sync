@@ -168,6 +168,12 @@ export async function registerRoutes(
       pathRewrite: (path) => `/api${path}`,
       timeout: 10000,
       proxyTimeout: 10000,
+      onProxyReq: (proxyReq, req) => {
+        // Set x-forwarded-host to the real public host for OAuth redirect_uri construction
+        if (req.headers.host) {
+          proxyReq.setHeader("x-forwarded-host", req.headers.host);
+        }
+      },
       on: {
         error: (err, req, res) => {
           console.error("[proxy] Error:", err.message);
