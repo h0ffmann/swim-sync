@@ -3,6 +3,7 @@ import type { Server } from "http";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { spawn, execSync } from "child_process";
 import path from "path";
+import { createConnection } from "net";
 
 let pythonProcess: ReturnType<typeof spawn> | null = null;
 let pythonReady = false;
@@ -23,6 +24,27 @@ function findPythonCommand(): string {
   }
   
   return "python3";
+}
+
+async function isPortInUse(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = createConnection({ port, host: "127.0.0.1" });
+    socket.setTimeout(1000);
+    
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    
+    socket.once("timeout", () => {
+      socket.destroy();
+      resolve(false);
+    });
+    
+    socket.once("error", () => {
+      resolve(false);
+    });
+  });
 }
 
 function startPythonBackend() {
@@ -117,8 +139,17 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Always start Python backend (both dev and production)
-  startPythonBackend();
+  // Check if Python is already running on port 8000
+  const portInUse = await isPortInUse(8000);
+  
+  if (!portInUse) {
+    // Only spawn Python if nothing is already listening on port 8000
+    console.log("[python] Port 8000 is free, starting Python backend...");
+    startPythonBackend();
+  } else {
+    console.log("[python] Port 8000 is already in use, assuming Python is running elsewhere");
+    pythonReady = true; // Assume it's ready if something is already listening
+  }
   
   // Wait for Python to be ready
   const ready = await waitForPython();
