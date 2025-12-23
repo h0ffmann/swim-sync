@@ -6,10 +6,10 @@ import path from "path";
 
 let pythonProcess: ReturnType<typeof spawn> | null = null;
 let pythonReady = false;
+const isProduction = process.env.NODE_ENV === "production";
 
 function findPythonCommand(): string {
-  // Try different Python commands
-  const commands = ["python3", "python", "/nix/store/python3/bin/python3"];
+  const commands = ["python3", "python"];
   
   for (const cmd of commands) {
     try {
@@ -21,12 +21,11 @@ function findPythonCommand(): string {
     }
   }
   
-  // Default fallback
   return "python3";
 }
 
 function startPythonBackend() {
-  if (pythonProcess) return;
+  if (pythonProcess || isProduction) return;
 
   const pythonCmd = findPythonCommand();
   const workDir = process.cwd();
@@ -59,7 +58,6 @@ function startPythonBackend() {
 
   pythonProcess.stderr?.on("data", (data) => {
     const msg = data.toString().trim();
-    // Uvicorn logs to stderr by default
     console.log("[python]", msg);
     if (msg.includes("Application startup complete") || msg.includes("Uvicorn running")) {
       pythonReady = true;
@@ -78,7 +76,7 @@ function startPythonBackend() {
     pythonProcess = null;
     pythonReady = false;
     
-    if (code !== 0 && code !== null) {
+    if (code !== 0 && code !== null && !isProduction) {
       console.error("[python] Backend crashed, attempting restart in 3s...");
       setTimeout(() => {
         startPythonBackend();
@@ -93,9 +91,10 @@ async function waitForPython(maxWait = 15000): Promise<boolean> {
   while (Date.now() - start < maxWait) {
     if (pythonReady) return true;
     
-    // Also try to connect
     try {
-      const response = await fetch("http://localhost:8000/api/health");
+      const response = await fetch("http://localhost:8000/api/health", { 
+        signal: AbortSignal.timeout(1000)
+      });
       if (response.ok) {
         pythonReady = true;
         return true;
@@ -114,15 +113,17 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Start Python backend
-  startPythonBackend();
-
-  // Wait for Python to be ready
-  const ready = await waitForPython();
-  if (ready) {
-    console.log("[express] Python backend is ready");
+  // Only spawn Python in development
+  if (!isProduction) {
+    startPythonBackend();
+    const ready = await waitForPython();
+    if (ready) {
+      console.log("[express] Python backend is ready");
+    } else {
+      console.warn("[express] Python backend not ready in time, will retry on requests");
+    }
   } else {
-    console.error("[express] Python backend did not start in time, continuing anyway...");
+    console.log("[express] Production mode - assuming Python backend is running separately");
   }
 
   // Proxy all /api requests to Python backend running on port 8000
@@ -132,6 +133,8 @@ export async function registerRoutes(
       target: "http://localhost:8000",
       changeOrigin: true,
       pathRewrite: (path) => `/api${path}`,
+      timeout: 10000,
+      proxyTimeout: 10000,
       on: {
         error: (err, req, res) => {
           console.error("[proxy] Error:", err.message);
