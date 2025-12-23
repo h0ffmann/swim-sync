@@ -77,19 +77,24 @@ export function ImportCSVDialog() {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+          <div className="relative border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors">
             <input
               type="file"
               accept=".csv"
               onChange={handleFileSelect}
               disabled={loading}
-              className="w-full h-full opacity-0 cursor-pointer absolute inset-0"
+              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
               id="csv-upload"
+              data-testid="input-csv-upload"
             />
             <label htmlFor="csv-upload" className="cursor-pointer block">
-              <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm font-medium">Click to upload CSV file</p>
-              <p className="text-xs text-muted-foreground mt-1">or drag and drop</p>
+              {loading ? (
+                <Loader2 className="w-8 h-8 mx-auto mb-2 text-muted-foreground animate-spin" />
+              ) : (
+                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+              )}
+              <p className="text-sm font-medium">{loading ? "Importing..." : "Click to upload CSV file"}</p>
+              <p className="text-xs text-muted-foreground mt-1">{loading ? "Please wait" : "or drag and drop"}</p>
             </label>
           </div>
           <p className="text-xs text-muted-foreground">
