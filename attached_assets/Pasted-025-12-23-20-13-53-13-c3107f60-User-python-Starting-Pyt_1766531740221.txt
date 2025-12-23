@@ -1,0 +1,156 @@
+025-12-23 20:13:53.13
+c3107f60
+User
+[python] Starting Python backend (production=True)...
+2025-12-23 20:13:53.13
+c3107f60
+User
+[python] REPLIT_DEPLOYMENT: 1
+2025-12-23 20:13:53.13
+c3107f60
+User
+[python] Working directory: /home/runner/workspace
+2025-12-23 20:13:53.13
+c3107f60
+User
+[python] NODE_ENV: not set
+2025-12-23 20:14:01.40
+c3107f60
+User
+INFO: Application startup complete.
+2025-12-23 20:14:01.40
+c3107f60
+User
+INFO: Waiting for application startup.
+2025-12-23 20:14:01.40
+c3107f60
+User
+INFO: Started server process [23]
+2025-12-23 20:14:01.41
+c3107f60
+User
+INFO: Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-12-23 20:14:01.41
+c3107f60
+User
+[python] INFO: Started server process [44]
+2025-12-23 20:14:01.41
+c3107f60
+User
+[python] INFO: Waiting for application shutdown.
+2025-12-23 20:14:01.41
+c3107f60
+User
+[python] Backend ready
+2025-12-23 20:14:01.41
+c3107f60
+User
+INFO: Application shutdown complete.
+2025-12-23 20:14:01.41
+c3107f60
+User
+ERROR: [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+2025-12-23 20:14:01.41
+c3107f60
+User
+[python] INFO: Waiting for application startup.
+2025-12-23 20:14:01.41
+c3107f60
+User
+INFO: Application startup complete.
+2025-12-23 20:14:01.74
+c3107f60
+User
+[python] Process exited with code 1, signal null
+2025-12-23 20:14:01.74
+c3107f60
+User
+[python] Backend crashed, attempting restart in 3s...
+2025-12-23 20:14:01.77
+c3107f60
+User
+NODE_ENV: not set
+2025-12-23 20:14:01.77
+c3107f60
+User
+Working directory: /home/runner/workspace
+2025-12-23 20:14:01.77
+c3107f60
+User
+INFO: 127.0.0.1:47244 - "GET /api/health HTTP/1.1" 200 OK
+2025-12-23 20:14:01.77
+c3107f60
+User
+REPLIT_DEPLOYMENT: 1
+2025-12-23 20:14:01.77
+c3107f60
+User
+Starting Python backend (production=True)...
+2025-12-23 20:14:01.78
+c3107f60
+User
+[express] Python backend is ready
+2025-12-23 20:14:01.78
+c3107f60
+User
+[static] Found dist directory at: /home/runner/workspace/dist/public
+2025-12-23 20:14:01.85
+c3107f60
+User
+11:14:01 PM [express] serving on port 5000
+2025-12-23 20:14:06.04
+c3107f60
+User
+[python] Found Python at: python3
+2025-12-23 20:14:06.14
+c3107f60
+User
+[python] Working directory: /home/runner/workspace
+2025-12-23 20:14:06.14
+c3107f60
+User
+[python] Starting Python backend on port 8000...
+2025-12-23 20:14:06.14
+c3107f60
+User
+[python] Script path: /home/runner/workspace/run_backend.py
+2025-12-23 20:14:06.14
+c3107f60
+User
+[python] Python command: python3
+2025-12-23 20:14:14.54
+c3107f60
+User
+[python] REPLIT_DEPLOYMENT: 1
+2025-12-23 20:14:14.54
+c3107f60
+User
+[python] NODE_ENV: not set
+2025-12-23 20:14:14.54
+c3107f60
+User
+[python] Starting Python backend (production=True)...
+2025-12-23 20:14:14.54
+c3107f60
+User
+[python] Working directory: /home/runner/workspace
+2025-12-23 20:14:15.18
+c3107f60
+User
+INFO: 35.243.129.130:0 - "GET /api/auth/user HTTP/1.1" 401 Unauthorized
+2025-12-23 20:14:15.19
+c3107f60
+User
+11:14:15 PM [express] GET /api/auth/user 401 in 93ms
+2025-12-23 20:14:16.59
+c3107f60
+User
+INFO: 35.243.129.130:0 - "GET /api/login HTTP/1.1" 307 Temporary Redirect
+2025-12-23 20:14:16.59
+c3107f60
+User
+11:14:16 PM [express] GET /api/login 307 in 45ms
+2025-12-23 20:14:59.14
+c3107f60
+User
+ERROR: [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
