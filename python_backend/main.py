@@ -1,6 +1,6 @@
 import os
 import httpx
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -205,12 +205,16 @@ async def delete_activity(
 # === CSV Import Route ===
 @app.post("/api/import/csv", response_model=CSVImportResponse, status_code=201)
 async def import_csv(
-    request: CSVImportRequest,
+    file: UploadFile = File(...),
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Import activities from Garmin CSV."""
-    activities_data = parse_garmin_csv(request.csvContent, user_id)
+    """Import activities from Garmin CSV file upload."""
+    # Read file content
+    content = await file.read()
+    csv_content = content.decode("utf-8")
+    
+    activities_data = parse_garmin_csv(csv_content, user_id)
     
     if not activities_data:
         raise HTTPException(status_code=400, detail="No valid activities found in CSV")
