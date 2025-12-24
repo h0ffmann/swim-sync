@@ -40,11 +40,13 @@ export function ImportCSVDialog() {
 
     setLoading(true);
     try {
-      const fileContent = await selectedFile.text();
+      // Use FormData for proper file upload
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
       const response = await fetch("/api/import/csv", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csvContent: fileContent }),
+        body: formData,
         credentials: "include",
       });
 
