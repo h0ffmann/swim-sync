@@ -166,8 +166,8 @@ export async function registerRoutes(
       target: "http://localhost:8000",
       changeOrigin: true,
       pathRewrite: (path) => `/api${path}`,
-      timeout: 10000,
-      proxyTimeout: 10000,
+      timeout: 120000,  // 2 minutes for large CSV imports
+      proxyTimeout: 120000,
       onProxyReq: (proxyReq, req) => {
         // Set x-forwarded-host to the real public host for OAuth redirect_uri construction
         if (req.headers.host) {

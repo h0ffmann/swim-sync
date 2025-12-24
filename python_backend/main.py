@@ -210,30 +210,48 @@ async def import_csv(
     db: Session = Depends(get_db)
 ):
     """Import activities from Garmin CSV file upload."""
-    # Read file content
-    content = await file.read()
-    csv_content = content.decode("utf-8")
-    
-    activities_data = parse_garmin_csv(csv_content, user_id)
-    
-    if not activities_data:
-        raise HTTPException(status_code=400, detail="No valid activities found in CSV")
-    
-    created_activities = []
-    for activity_data in activities_data:
-        activity = Activity(
-            user_id=user_id,
-            **activity_data.model_dump()
-        )
-        db.add(activity)
+    try:
+        # Read file content
+        content = await file.read()
+        csv_content = content.decode("utf-8")
+        print(f"[CSV Import] Received file: {file.filename}, size: {len(content)} bytes")
+        
+        activities_data = parse_garmin_csv(csv_content, user_id)
+        print(f"[CSV Import] Parsed {len(activities_data)} activities")
+        
+        if not activities_data:
+            raise HTTPException(status_code=400, detail="No valid swimming activities found in CSV. Make sure the file contains Pool Swim or Open Water Swimming activities.")
+        
+        # Bulk insert for efficiency
+        created_activities = []
+        for activity_data in activities_data:
+            activity = Activity(
+                user_id=user_id,
+                **activity_data.model_dump()
+            )
+            db.add(activity)
+            created_activities.append(activity)
+        
+        # Commit all at once
         db.commit()
-        db.refresh(activity)
-        created_activities.append(activity)
-    
-    return CSVImportResponse(
-        message=f"Successfully imported {len(created_activities)} activities",
-        activities=created_activities
-    )
+        
+        # Refresh all to get IDs
+        for activity in created_activities:
+            db.refresh(activity)
+        
+        print(f"[CSV Import] Successfully imported {len(created_activities)} activities for user {user_id}")
+        return CSVImportResponse(
+            message=f"Successfully imported {len(created_activities)} activities",
+            activities=created_activities
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[CSV Import] Error: {str(e)}")
+        print(f"[CSV Import] Traceback: {traceback.format_exc()}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to import CSV: {str(e)}")
 
 
 # === Personal Records Routes ===
