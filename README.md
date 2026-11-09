@@ -5,6 +5,8 @@
 > The code is kept here for reference only. Issues and pull requests are not accepted, and the app is no longer deployed.
 >
 > Swimming support continues in **marola-dev**, which plans to improve its swimming features much more in 2027.
+>
+> <a href="https://strava.com/athletes/144282698" target="_blank"><img src="https://img.shields.io/badge/Strava-open_water_swimming-FC4C02?style=for-the-badge&logo=strava&logoColor=white" alt="strava (open water swimming)" /></a>
 
 A comprehensive swimming training application inspired by Strava, designed specifically for competitive swimmers and open water enthusiasts. Features activity tracking, advanced analytics, personal record management, goal setting, and AI-powered coaching insights.
 
