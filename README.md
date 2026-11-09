@@ -1,5 +1,9 @@
 # SwimSync - Swimming Training Application
 
+> [!WARNING]
+> **This repository is archived and no longer maintained.**
+> The code is kept here for reference only. Issues and pull requests are not accepted, and the app is no longer deployed.
+
 A comprehensive swimming training application inspired by Strava, designed specifically for competitive swimmers and open water enthusiasts. Features activity tracking, advanced analytics, personal record management, goal setting, and AI-powered coaching insights.
 
 ## Tech Stack
